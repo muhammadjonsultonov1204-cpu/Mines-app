@@ -3,68 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blogger Bot Ultimate</title>
+    <title>Multi-Bot PRO Ultimate</title>
     <style>
-        body { background: #0a0e17; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; }
+        :root { --blue: #2563eb; --green: #10b981; --red: #ef4444; --bg: #0a0e17; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; text-align: center; margin: 0; padding: 15px; }
+        
+        .header { background: linear-gradient(135deg, #1e293b, #0f172a); padding: 15px; border-radius: 15px; border: 1px solid var(--blue); margin-bottom: 15px; }
+        
         .tabs { display: flex; gap: 8px; margin-bottom: 15px; }
-        .tab-btn { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #3b82f6; background: #1e293b; color: white; font-weight: bold; cursor: pointer; font-size: 13px; }
-        .tab-btn.active { background: #3b82f6; box-shadow: 0 0 10px #3b82f6; }
-        .game-container { display: none; background: #161d2f; padding: 15px; border-radius: 15px; border: 1px solid #2563eb; }
-        .game-container.active { display: block; }
-        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 15px auto; max-width: 250px; }
-        .cell { width: 45px; height: 45px; background: #1f2937; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 20px; border-bottom: 2px solid #111827; }
-        .goal { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 15px auto; max-width: 280px; }
-        .sector { height: 50px; border: 2px dashed #3b82f6; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-        .btn-main { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .stop-limit { margin-top: 15px; background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; padding: 10px; border-radius: 10px; font-size: 12px; text-align: left; }
-        .stop-limit h4 { margin: 0 0 5px 0; color: #ef4444; text-align: center; }
+        .tab-btn { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #334155; background: #1e293b; color: #94a3b8; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .tab-btn.active { background: var(--blue); color: white; border-color: var(--blue); box-shadow: 0 0 15px var(--blue); }
+
+        .container { display: none; background: #161d2f; padding: 20px; border-radius: 20px; border: 1px solid #2563eb; animation: fadeIn 0.4s; }
+        .container.active { display: block; }
+
+        /* Mines Design */
+        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 20px auto; max-width: 280px; }
+        .cell { width: 50px; height: 50px; background: #1f2937; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px; border-bottom: 3px solid #111827; }
+
+        /* Penalty Design */
+        .goal { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px auto; }
+        .sector { height: 60px; border: 2px dashed var(--blue); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 25px; }
+
+        /* Calculator Design */
+        .calc-box { text-align: left; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; }
+        .calc-input { width: 90%; padding: 10px; margin: 10px 0; border-radius: 8px; border: 1px solid var(--blue); background: #0f172a; color: white; }
+
+        .btn-main { background: linear-gradient(135deg, var(--blue), #1d4ed8); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
+
+    <div class="header">
+        <div style="font-size: 18px; font-weight: bold;">💎 MULTI-BOT <span style="color: var(--blue);">PRO</span></div>
+        <div style="font-size: 12px; color: #94a3b8; margin-top: 5px;">Баланси тавсиявӣ: 50-100 TJS</div>
+    </div>
+
     <div class="tabs">
-        <button id="btn-m" class="tab-btn active" onclick="showGame('mines')">MINES</button>
-        <button id="btn-p" class="tab-btn" onclick="showGame('penalty')">PENALTY</button>
+        <button class="tab-btn active" onclick="tab('mines')">MINES</button>
+        <button class="tab-btn" onclick="tab('penalty')">PENALTY</button>
+        <button class="tab-btn" onclick="tab('calc')">ҲИСОБ</button>
     </div>
 
-    <div id="mines" class="game-container active">
-        <div style="color: #3b82f6; font-weight: bold;">MINES PREDICTOR PRO</div>
+    <div id="mines" class="container active">
         <div class="grid" id="m-grid"></div>
-        <button class="btn-main" onclick="getMines()">GET MINES SIGNAL</button>
+        <button class="btn-main" onclick="getMines()">ГИРИФТАНИ СИГНАЛ</button>
     </div>
 
-    <div id="penalty" class="game-container">
-        <div style="color: #10b981; font-weight: bold;">PENALTY PREDICTOR PRO</div>
+    <div id="penalty" class="container">
         <div class="goal" id="p-goal"></div>
-        <button class="btn-main" style="background:#10b981" onclick="getPenalty()">GET PENALTY SIGNAL</button>
+        <button class="btn-main" style="background: var(--green)" onclick="getPenalty()">ГИРИФТАНИ СИГНАЛ</button>
     </div>
 
-    <div class="stop-limit">
-        <h4>🛑 СТОП-ЛИМИТ (СТРАТЕГИЯ)</h4>
-        • <b>БУРД:</b> Агар +100 сомонӣ фоида кардӣ - ВЫВОД!<br>
-        • <b>БОХТ:</b> Агар 20 сомонӣ бохтӣ - ТАНАФФУС 1 СОАТ!<br>
-        • <b>ҚОИДА:</b> Танҳо 2 ситора кушо ва пулро гир!
+    <div id="calc" class="container">
+        <div class="calc-box">
+            <label>Маблағи бохт (TJS):</label>
+            <input type="number" id="lossAmount" class="calc-input" placeholder="Масалан: 2">
+            <button class="btn-main" style="background: var(--red)" onclick="calculate()">ҲИСОБ КАРДАНИ СТАВКА</button>
+            <div id="result" style="margin-top: 15px; font-weight: bold; color: var(--green);"></div>
+        </div>
     </div>
 
     <script>
-        function showGame(g) {
-            document.querySelectorAll('.game-container').forEach(c => c.classList.remove('active'));
+        function tab(name) {
+            document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(g).classList.add('active');
-            document.getElementById(g == 'mines' ? 'btn-m' : 'btn-p').classList.add('active');
+            document.getElementById(name).classList.add('active');
+            event.currentTarget.classList.add('active');
         }
 
+        // Mines Logic
         const mGrid = document.getElementById('m-grid');
         for(let i=0; i<25; i++) mGrid.innerHTML += '<div class="cell"></div>';
         function getMines() {
             const cells = document.querySelectorAll('.cell');
             cells.forEach(c => { c.innerHTML = ''; c.style.background = '#1f2937'; });
-            for(let i=0; i<3; i++) {
+            let count = 0;
+            while(count < 3) {
                 let r = Math.floor(Math.random() * 25);
-                cells[r].innerHTML = '⭐';
-                cells[r].style.background = '#1e3a8a';
+                if(cells[r].innerHTML === '') {
+                    cells[r].innerHTML = '⭐';
+                    cells[r].style.background = 'rgba(37, 99, 235, 0.3)';
+                    count++;
+                }
             }
         }
 
+        // Penalty Logic
         const pGoal = document.getElementById('p-goal');
         for(let i=0; i<6; i++) pGoal.innerHTML += '<div class="sector"></div>';
         function getPenalty() {
@@ -72,7 +99,16 @@
             sectors.forEach(s => { s.innerHTML = ''; s.style.background = 'none'; });
             let r = Math.floor(Math.random() * 6);
             sectors[r].innerHTML = '⚽';
-            sectors[r].style.background = 'rgba(16, 185, 129, 0.3)';
+            sectors[r].style.background = 'rgba(16, 185, 129, 0.2)';
+        }
+
+        // Calculator Logic
+        function calculate() {
+            let loss = document.getElementById('lossAmount').value;
+            if(loss > 0) {
+                let next = loss * 3;
+                document.getElementById('result').innerHTML = `Ставкаи навбатии ту: ${next} TJS <br> (Ин маблағ бохти туро мепӯшад)`;
+            }
         }
     </script>
 </body>
