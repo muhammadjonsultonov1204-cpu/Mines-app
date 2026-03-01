@@ -3,60 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Bot Martingale Pro</title>
+    <title>Multi-Bot Professional</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --blue: #3b82f6; --red: #ef4444; --green: #10b981; --bg: #0a0f1d; }
-        body { background: var(--bg); color: white; font-family: sans-serif; padding: 15px; text-align: center; }
-        .card { background: #161d2f; padding: 20px; border-radius: 20px; border: 1px solid #1e293b; margin-bottom: 15px; }
-        .martingale-box { display: flex; flex-direction: column; gap: 10px; }
-        input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--blue); background: #0a0f1d; color: white; box-sizing: border-box; font-size: 18px; }
-        .btn-group { display: flex; gap: 10px; margin-top: 10px; }
-        .btn { flex: 1; padding: 15px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; color: white; }
-        .btn-win { background: var(--green); }
-        .btn-loss { background: var(--red); }
-        .result-text { margin-top: 15px; font-size: 16px; font-weight: bold; border-top: 1px solid #1e293b; padding-top: 10px; }
+        :root { --blue: #3b82f6; --green: #10b981; --red: #ef4444; --bg: #0f172a; --card: #1e293b; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 15px; text-align: center; user-select: none; }
+        
+        /* Header */
+        .header { padding: 10px; margin-bottom: 15px; border-bottom: 2px solid var(--blue); }
+        .logo { font-size: 22px; font-weight: bold; letter-spacing: 1px; }
+        .status { font-size: 12px; color: var(--green); margin-top: 5px; }
+
+        /* Navigation Tabs */
+        .tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; }
+        .tab-btn { background: var(--card); border: 1px solid #334155; color: #94a3b8; padding: 12px 5px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 12px; }
+        .tab-btn.active { background: var(--blue); color: white; border-color: var(--blue); box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); }
+
+        /* Game Containers */
+        .game-container { display: none; background: var(--card); padding: 20px; border-radius: 20px; animation: slideIn 0.3s ease; }
+        .game-container.active { display: block; }
+
+        /* Mines Grid */
+        .mines-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 20px auto; max-width: 250px; }
+        .cell { width: 45px; height: 45px; background: #0f172a; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 22px; transition: 0.3s; border-bottom: 3px solid #000; }
+
+        /* Penalty Goal */
+        .penalty-goal { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px auto; }
+        .sector { height: 60px; border: 2px dashed var(--blue); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+
+        /* Calculator & Martingale */
+        .calc-box { text-align: left; }
+        input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--blue); background: #0f172a; color: white; margin: 10px 0; box-sizing: border-box; }
+        
+        .btn-main { background: linear-gradient(135deg, var(--blue), #1d4ed8); color: white; border: none; padding: 15px; border-radius: 15px; width: 100%; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 10px; }
+
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-    <div style="font-size: 20px; font-weight: bold; margin-bottom: 15px;">📊 СТРАТЕГИЯИ МАРТИНГЕЙЛ</div>
+    <div class="header">
+        <div class="logo">💎 MULTI-BOT <span style="color: var(--blue);">PRO</span></div>
+        <div class="status">● СЕРВЕР ФАЪОЛ АСТ</div>
+    </div>
 
-    <div class="card">
-        <div class="martingale-box">
-            <label style="font-size: 12px; color: #94a3b8; margin-bottom: 5px;">СТАВКАИ АВВАЛИН (TJS):</label>
-            <input type="number" id="baseBet" value="2">
-            
-            <div class="btn-group">
-                <button class="btn btn-win" onclick="handleWin()">БУРД ✅</button>
-                <button class="btn btn-loss" onclick="handleLoss()">БОХТ ❌</button>
-            </div>
-        </div>
+    <div class="tabs">
+        <button class="tab-btn active" onclick="openGame('mines', this)">💣 MINES</button>
+        <button class="tab-btn" onclick="openGame('penalty', this)">⚽ PENALTY</button>
+        <button class="tab-btn" onclick="openGame('calc', this)">🧮 ҲИСОБ</button>
+    </div>
 
-        <div id="martingaleRes" class="result-text">
-            Ставкаи ҳозира: <span id="currentBet" style="color: var(--blue);">2</span> TJS
+    <div id="mines" class="game-container active">
+        <div style="font-size: 14px; color: #94a3b8;">Стратегия: 3 Мина / 2-3 Ситора</div>
+        <div class="mines-grid" id="m-grid"></div>
+        <button class="btn-main" onclick="getMinesSignal()">ГИРИФТАНИ СИГНАЛ</button>
+    </div>
+
+    <div id="penalty" class="game-container">
+        <div style="font-size: 14px; color: #94a3b8;">Сектори эҳтимолӣ барои гол:</div>
+        <div class="penalty-goal" id="p-goal"></div>
+        <button class="btn-main" style="background: var(--green);" onclick="getPenaltySignal()">ГИРИФТАНИ СИГНАЛ</button>
+    </div>
+
+    <div id="calc" class="game-container">
+        <div class="calc-box">
+            <label>Маблағи бохт (TJS):</label>
+            <input type="number" id="lossInput" placeholder="Масалан: 2">
+            <button class="btn-main" style="background: var(--red);" onclick="calculateNext()">ҲИСОБИ МАРТИНГЕЙЛ</button>
+            <div id="calcRes" style="margin-top: 15px; font-weight: bold; color: var(--green); text-align: center;"></div>
         </div>
     </div>
 
     <script>
-        let currentBet = 2;
+        // Инициализатсияи майдонҳо
+        const mGrid = document.getElementById('m-grid');
+        for(let i=0; i<25; i++) mGrid.innerHTML += '<div class="cell"></div>';
+        
+        const pGoal = document.getElementById('p-goal');
+        for(let i=0; i<6; i++) pGoal.innerHTML += '<div class="sector"></div>';
 
-        function handleWin() {
-            // Баъд аз бурд ба ставкаи аввалин бармегардем
-            currentBet = parseFloat(document.getElementById('baseBet').value);
-            updateUI("✅ Бурд! Ба ставкаи аввал баргардед.");
+        function openGame(id, btn) {
+            document.querySelectorAll('.game-container').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            btn.classList.add('active');
         }
 
-        function handleLoss() {
-            // Баъд аз бохт ставкаро 3 баробар зиёд мекунем
-            currentBet = currentBet * 3;
-            updateUI("❌ Бохт! Ставкаро зиёд кунед.");
+        function getMinesSignal() {
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach(c => { c.innerHTML = ''; c.style.background = '#0f172a'; });
+            let stars = 0;
+            while(stars < 4) {
+                let r = Math.floor(Math.random() * 25);
+                if(cells[r].innerHTML === '') {
+                    cells[r].innerHTML = '💎';
+                    cells[r].style.background = 'rgba(59, 130, 246, 0.2)';
+                    stars++;
+                }
+            }
         }
 
-        function updateUI(msg) {
-            document.getElementById('currentBet').innerText = currentBet.toFixed(2);
-            let resBox = document.getElementById('martingaleRes');
-            resBox.innerHTML = `Ставкаи навбатӣ: <span style="color: var(--blue);">${currentBet.toFixed(2)}</span> TJS<br><small>${msg}</small>`;
+        function getPenaltySignal() {
+            const sectors = document.querySelectorAll('.sector');
+            sectors.forEach(s => { s.innerHTML = ''; s.style.background = 'none'; });
+            let r = Math.floor(Math.random() * 6);
+            sectors[r].innerHTML = '⚽';
+            sectors[r].style.background = 'rgba(16, 185, 129, 0.2)';
         }
+
+        function calculateNext() {
+            let loss = document.getElementById('lossInput').value;
+            if(loss > 0) {
+                let next = loss * 3;
+                document.getElementById('calcRes').innerHTML = `Ставкаи навбатӣ: ${next} TJS<br><small>Ин маблағ бохтро мепӯшонад!</small>`;
+            }
+        }
+
+        // Telegram WebApp Close/Ready
+        Telegram.WebApp.ready();
     </script>
 </body>
 </html>
